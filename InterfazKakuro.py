@@ -1,11 +1,15 @@
+import pickle
 from random import randint, choice, shuffle
 from tkinter import *
+from tkinter.filedialog import askopenfilename
+from tkinter import filedialog, messagebox
 
 import copy
 
 from Combinaciones import *
 
 tablero, matrizTablero, matrizF = [], [], []
+tamanioCuadricula = 0
 
 
 def verificar(fila, tamanio):
@@ -92,11 +96,14 @@ def sumaHorizontal(tamanio):
                         else:
                             break
                     # print(suma)
-                    if(suma != 0):
-                        matrizTablero[i][j] = str(suma)+"&"
-                        tablero[i][j].set_nHorizontal(suma)
-                        tablero[i][j].set_foreground("white")
-                        tablero[i][j].set_text(True, "H")
+                    if(suma != 0 and suma < 46):
+                        if(suma == 2 and cont > 2):
+                            pass
+                        else:
+                            matrizTablero[i][j] = str(suma)+"&"
+                            tablero[i][j].set_nHorizontal(suma)
+                            tablero[i][j].set_foreground("white")
+                            tablero[i][j].set_text(True, "H")
 
 
 def validarAmp(string):
@@ -130,15 +137,18 @@ def sumaVertical(tamanio):
 
 
 def crearMatrizTablero(tamanio):
+    global matrizF
     matrizF = copy.deepcopy(matrizTablero)
     for i in range(tamanio):
         for j in range(tamanio):
             if(validarAmp(matrizTablero[i][j]) == False):
-                matrizF[i][j] = 0
+                matrizF[i][j] = "0"
+    # print(matrizF)
+
 
 def valoresHorizontal(tamanio):
     try:
-        global tablero, matrizTablero
+        global tablero, matrizTablero, ventanaKakuro
         cont = 1
         for i in range(1, tamanio):
             j = 0
@@ -219,7 +229,9 @@ def valoresHorizontal(tamanio):
         sumaVertical(tamanio)
         crearMatrizTablero(tamanio)
     except:
-        generar()
+        print("Intento fallido, recalculando...")
+        # valoresHorizontal(tamanio)
+
 
 class LabelTablero:
     def __init__(self, ventana, background, xi, yi, ancho, alto):
@@ -270,9 +282,35 @@ def resolverRapidoPeroNo(tamanio):
                 tablero[i][j].set_text(False, matrizTablero[i][j])
 
 
+def guardaKakuro(tamanio):
+    try:
+        global matrizF
+        ftypes = [('.txt file', "*.txt")]
+        archivo = filedialog.asksaveasfile(mode='w', filetypes=ftypes, defaultextension=".txt")
+
+        if archivo is None:  # En caso de cerrar la ventana y no hacer nada
+            return
+        cadena = ""
+        for i in range(tamanio):
+            for j in range(tamanio):
+                if(validarAmp(matrizF[i][j]) == True):
+                    cadena += matrizF[i][j]
+                    cadena += "*"
+                if(matrizF[i][j] == "0"):
+                    cadena += "0"
+                    cadena += "*"
+            cadena += "#"
+
+        contenido = str(tamanio)+"\n"+cadena
+        archivo.write(contenido)
+        archivo.close()
+    except:
+        advertencia = messagebox.showerror("Error", 'No se pudo guardar la partida')
+
+
 class Tablero:
-    def __init__(self, tamanio, wDimentions, f_width, f_height, x):
-        global tablero, matrizTablero
+    def __init__(self, tamanio, wDimentions, f_width, f_height, x, cargar=False):
+        global tablero, matrizTablero, ventanaKakuro, matrizF
 
         fila = []
         columna = []
@@ -299,77 +337,150 @@ class Tablero:
 
         btnResolver = Button(ventanaKakuro, text="Resolver", width=20, relief=FLAT,
                              command=lambda: resolverRapidoPeroNo(tamanio))
+
+        btnGuardar = Button(ventanaKakuro, text="Guardar Kakuro", width=20, relief=FLAT,
+                            command=lambda: guardaKakuro(tamanio))
+
         btnResolver.place(x=index_X+f_width+10, y=f_height)
+        btnGuardar.place(x=index_X+f_width+10, y=f_height-30)
 
-        for i in range(tamanio):
-            for j in range(tamanio):
-                fila += [0]
-            matrizTablero += [fila]
-            fila = []
+        if(cargar == False):
 
-        for i in range(tamanio): #Para bloquear la fila y la columna 0
-            tablero[0][i].set_background("black")
-            matrizTablero[0][i] = "&"
-            tablero[i][0].set_background("black")
-            matrizTablero[i][0] = "&"
+            for i in range(tamanio):
+                for j in range(tamanio):
+                    fila += [0]
+                matrizTablero += [fila]
+                fila = []
 
-        cantBloqueadas = tamanio*3 #Porcentaje del tablero que quiero bloquear, puede variar
+            for i in range(tamanio): #Para bloquear la fila y la columna 0
+                tablero[0][i].set_background("black")
+                matrizTablero[0][i] = "&"
+                tablero[i][0].set_background("black")
+                matrizTablero[i][0] = "&"
 
-        for h in range(cantBloqueadas):
-            rand_x = randint(0,tamanio-1)
-            rand_y = randint(0, tamanio-1)
-            while(matrizTablero[rand_x][rand_y] == "&"):
-                rand_x = randint(0, tamanio - 1)
-                rand_y = randint(0, tamanio - 1)
-            matrizTablero[rand_x][rand_y] = "&"
-            tablero[rand_x][rand_y].set_background("black")
+            cantBloqueadas = tamanio*3 #Porcentaje del tablero que quiero bloquear, puede variar
 
-        for i in range(tamanio):
-            for j in range(tamanio//5):
-                #No esta verificando en vertical
-                inicio = verificar(matrizTablero[i], tamanio)
+            for h in range(cantBloqueadas):
+                rand_x = randint(0,tamanio-1)
+                rand_y = randint(0, tamanio-1)
+                while(matrizTablero[rand_x][rand_y] == "&"):
+                    rand_x = randint(0, tamanio - 1)
+                    rand_y = randint(0, tamanio - 1)
+                matrizTablero[rand_x][rand_y] = "&"
+                tablero[rand_x][rand_y].set_background("black")
 
-                if(inicio != -1):
-                    x = randint(inicio, tamanio-1)
-                    while(matrizTablero[i][x] == "&"):
+            for i in range(tamanio):
+                for j in range(tamanio//5):
+                    #No esta verificando en vertical
+                    inicio = verificar(matrizTablero[i], tamanio)
+
+                    if(inicio != -1):
                         x = randint(inicio, tamanio-1)
-                    matrizTablero[i][x] = "&"
-                    tablero[i][x].set_background("black")
-                    # tablero[i][x].configure(fg="white", text="0#")
+                        while(matrizTablero[i][x] == "&"):
+                            x = randint(inicio, tamanio-1)
+                        matrizTablero[i][x] = "&"
+                        tablero[i][x].set_background("black")
+                        # tablero[i][x].configure(fg="white", text="0#")
 
-        for i in range(tamanio):
-            for j in range(tamanio):
-                columna += [matrizTablero[j][i]]
-            for h in range(tamanio//5):
-                inicio = verificar(columna, tamanio)
-                if(inicio != -1):
-                    x = randint(inicio, tamanio-1)
-                    while(matrizTablero[x][i] == "&"):
+            for i in range(tamanio):
+                for j in range(tamanio):
+                    columna += [matrizTablero[j][i]]
+                for h in range(tamanio//5):
+                    inicio = verificar(columna, tamanio)
+                    if(inicio != -1):
                         x = randint(inicio, tamanio-1)
-                    matrizTablero[x][i] = "&"
-                    tablero[x][i].set_background("black")
-                    # tablero[x][i].configure(fg="white", text="1#")
-            columna = []
+                        while(matrizTablero[x][i] == "&"):
+                            x = randint(inicio, tamanio-1)
+                        matrizTablero[x][i] = "&"
+                        tablero[x][i].set_background("black")
+                        # tablero[x][i].configure(fg="white", text="1#")
+                columna = []
 
-        for i in range(tamanio):
-            for j in range(tamanio):
-                try:
-                    if(matrizTablero[i-1][j] == "&" and matrizTablero[i+1][j] == "&"
-                       and matrizTablero[i][j-1] == "&" and matrizTablero[i][j+1] == "&"):
+            for i in range(tamanio):
+                for j in range(tamanio):
+                    try:
+                        if(matrizTablero[i-1][j] == "&" and matrizTablero[i+1][j] == "&"
+                           and matrizTablero[i][j-1] == "&" and matrizTablero[i][j+1] == "&"):
+                            matrizTablero[i][j] = "&"
+                            tablero[i][j].set_background("black")
+                    except:
                         matrizTablero[i][j] = "&"
                         tablero[i][j].set_background("black")
-                except:
-                    matrizTablero[i][j] = "&"
-                    tablero[i][j].set_background("black")
 
-        valoresHorizontal(tamanio)
-        # valoresVertical(tamanio)
+            valoresHorizontal(tamanio)
+
+        else:
+            matrizTemp = []
+            matrizTemp2 = []
+            matrizTemp = matrizF.split("#")
+            for i in range(len(matrizTemp)):
+                matrizTemp2 += [matrizTemp[i].split("*")]
+            matrizF = copy.deepcopy(matrizTemp2)
+            # print(matrizF)
+            for i in range(tamanio):
+                for j in range(tamanio):
+                    if(validarAmp(matrizF[i][j]) == True):
+                        matrizTemp = matrizF[i][j].split("&")
+                        if(matrizTemp[0] != "" or matrizTemp[1] != ""):
+                            if(matrizTemp[1] == "" and matrizTemp[0] != ""):
+                                tablero[i][j].set_nHorizontal(matrizTemp[0])
+                                tablero[i][j].set_text(True, "H")
+                            elif(matrizTemp[1] != "" and matrizTemp[0] == ""):
+                                tablero[i][j].set_nVertical(matrizTemp[1])
+                                tablero[i][j].set_text(True, "H")
+                            else:
+                                tablero[i][j].set_nHorizontal(matrizTemp[0])
+                                tablero[i][j].set_nVertical(matrizTemp[1])
+                                tablero[i][j].set_text(True, "H")
+                        tablero[i][j].set_foreground("white")
+                        tablero[i][j].set_background("Black")
 
 
 
-        #Para generarlo puedo hacer una funcion que recorra el kakuro y por cadda uno llama a
-        #a otra para verificar la fila y la columna que recibe una fila o columna y el numero que queremos
-        #colocar y que retorme true o false, puede ser ¿?"""
+
+            #Para generarlo puedo hacer una funcion que recorra el kakuro y por cadda uno llama a
+            #a otra para verificar la fila y la columna que recibe una fila o columna y el numero que queremos
+            #colocar y que retorme true o false, puede ser ¿?"""
+
+
+def cargarP():
+    global tamanioCuadricula
+    try:
+        global matrizF
+        ftypes = [('.txt file', "*.txt")]
+        ttl = "Buscar Kakuro..."
+        dir1 = 'C:\\'
+        direccionArchivo = askopenfilename(filetypes=ftypes, initialdir=dir1, title=ttl)
+
+        if (direccionArchivo is ""):  # En caso de cerrar la ventana y no abrir nada
+            return
+
+        with open(direccionArchivo, 'r') as Partida:
+            tamanioCuadricula = int(Partida.readline())-9
+            matrizF = Partida.readline()
+            # print(tamanioCuadricula)
+            # print(matrizF)
+            dimension = tamanioCuadricula
+            desp_w = 30 * dimension
+            desp_h = 26 * dimension
+            _w = 470 + desp_w
+            _h = 270 + desp_w
+            _x = 400 - desp_w
+            _y = 50
+            wDimention = str(_w) + "x" + str(_h) + "+" + str(_x) + "+" + str(_y)
+            _wf = 282 + desp_w
+            _hf = 230 + desp_h
+            cuadricula = 9 + dimension
+            x = dimension % 6
+            if dimension <= 3:
+                x = -1
+            if dimension == 4 or dimension == 5:
+                x = 0
+            # print(x)
+            # ventanaMenu.destroy()
+            ventana = Tablero(cuadricula, wDimention, _wf, _hf, x, True)
+    except:
+        advertencia = messagebox.showerror("Error", 'No se pudo abrir la partida')
 
 
 def menu():
@@ -377,10 +488,9 @@ def menu():
     ventanaMenu = Tk()
 
     ventanaMenu.title("Menú Kakuro")
-    ventanaMenu.geometry("205x260+550+150")
+    ventanaMenu.geometry("205x300+550+150")
     ventanaMenu.configure(bg="light blue")
     ventanaMenu.resizable(FALSE, FALSE)
-
     tamanioCuadricula = IntVar()
 
     lblTamanio = Label(ventanaMenu, text="Seleccione el tamaño del Kakuro:")
@@ -397,8 +507,11 @@ def menu():
     Rb19 = Radiobutton(ventanaMenu, text="19x19", value=10, variable=tamanioCuadricula)
     Rb20 = Radiobutton(ventanaMenu, text="20x20", value=11, variable=tamanioCuadricula)
 
-    btnGenerar = Button(ventanaMenu, text="Generar", bg="#001848", fg="white", width="20",
+    btnGenerar = Button(ventanaMenu, text="Generar Nuevo", bg="#001848", fg="white", width="20",
                         relief=FLAT, command=lambda: generar())
+
+    btnCargarP = Button(ventanaMenu, text="Cargar Kakuro", bg="#001848", fg="white", width="20",
+                        relief=FLAT, command= lambda: cargarP())
 
     Rb14.select()
 
@@ -415,11 +528,13 @@ def menu():
     Rb19.place(x=100, y=130)
     Rb20.place(x=100, y=160)
 
-    btnGenerar.place(x=25, y=220)
+    btnGenerar.place(x=25, y=225)
+    btnCargarP.place(x=25, y=260)
 
     ventanaMenu.mainloop()
 
 def generar():
+    global ventanaKakuro, tamanioCuadricula
     dimension = tamanioCuadricula.get()
     desp_w = 30 * dimension
     desp_h = 26 * dimension
@@ -437,7 +552,7 @@ def generar():
     if dimension == 4 or dimension == 5:
         x = 0
     # print(x)
-    ventanaMenu.destroy()
+    # ventanaMenu.destroy()
     ventana = Tablero(cuadricula, wDimention, _wf, _hf, x)
 
 menu()
