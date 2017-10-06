@@ -477,7 +477,7 @@ def cargarP():
             if dimension == 4 or dimension == 5:
                 x = 0
             # print(x)
-            # ventanaMenu.destroy()
+            ventanaMenu.destroy()
             ventana = Tablero(cuadricula, wDimention, _wf, _hf, x, True)
     except:
         advertencia = messagebox.showerror("Error", 'No se pudo abrir la partida')
@@ -552,7 +552,7 @@ def generar():
     if dimension == 4 or dimension == 5:
         x = 0
     # print(x)
-    # ventanaMenu.destroy()
+    ventanaMenu.destroy()
     ventana = Tablero(cuadricula, wDimention, _wf, _hf, x)
 
 menu()
