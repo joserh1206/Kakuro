@@ -11,7 +11,7 @@ nueveCasillas = [45]
 listaDopciones = [unaCasilla, dosCasillas, tresCasillas, cuatroCasillas, cincoCasillas, seisCasillas, sieteCasillas, ochoCasillas,
                   nueveCasillas]
 
-lista0 = [0]
+lista0 = []
 lista1 = [0]
 lista2 = [0]
 lista3 = [12]
