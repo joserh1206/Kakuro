@@ -4,14 +4,12 @@ from itertools import *
 from tkinter import *
 from tkinter.filedialog import askopenfilename
 from tkinter import filedialog, messagebox
-
 from copy import *
-
 from Combinaciones import *
+from time import time
 
 tablero, matrizTablero, matrizF = [], [], []
 tamanioCuadricula = 0
-
 
 def verificar(fila, tamanio):
     cont = 0
@@ -270,14 +268,14 @@ def valoresHorizontal(tamanio):
                     while (j + cont < tamanio and matrizTablero[i][j + cont] == 0):
                         cont += 1  # Cuenta cuantos espacios disponibles hay
                     # print("Cont: ", cont-1)
-                    if (matrizTablero[i][j + 1] == 0):  # Verificacion para ver si el que sigue no es tambien negro
+                    if (matrizTablero[i][j + 1] == 0 and cont-2 < 10):  # Verificacion para ver si el que sigue no es tambien negro
+                        # print(cont-2, "cont-2")
 
                         valor = choice(listaDopciones[cont - 2])  # Escoge un valor aleatorio de una lista
 
                         matrizTablero[i][j] = "&"  # Asigna ese valor al lugar de la matriz en negro
 
-                        lista = listaDcombinaciones[
-                            valor]  # Escoge la lista de las posibles combinaciones para el valor
+                        lista = listaDcombinaciones[valor]  # Escoge la lista de las posibles combinaciones para el valor
 
                         size = len(lista)  # Cant de combinaciones disponibles para escoger
 
@@ -535,7 +533,10 @@ def fijos2(tamanio):
 
     dis = disponibles(tamanio)
     # print(dis, "dis")
+    tiempoini = time()
     backtracking(matrizF, tamanio, dis)
+    tiempofin = time()
+    print("Sin hilos duró: ", tiempofin-tiempoini)
 
 
 class LabelTablero:
@@ -841,13 +842,6 @@ class Tablero:
                                 tablero[i][j].set_text(True, "H")
                         tablero[i][j].set_foreground("white")
                         tablero[i][j].set_background("Black")
-
-
-
-
-                        # Para generarlo puedo hacer una funcion que recorra el kakuro y por cadda uno llama a
-                        # a otra para verificar la fila y la columna que recibe una fila o columna y el numero que queremos
-                        # colocar y que retorme true o false, puede ser ¿?"""
 
 
 def cargarP():
