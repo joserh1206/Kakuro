@@ -410,7 +410,7 @@ def disponibles(tamanio):
 
 def verifca(prueba, cont, i, j, tamanio):
     c = 0
-    cantperm = int(prueba)*pow(tamanio, 2)
+    cantperm = pow(tamanio,2)*cont #Cantidad de casillas para las permutaciones
     pos = matrizTablero[i][j]
     while(c < cantperm):
         if(verificarRepetidosArriba(i, j, pos) == True):
@@ -447,7 +447,7 @@ def is_posible(prueba, objetivo, i, j, tamanio):
 
 def backtracking(brd, tamanio, empties):
     # global matrizF
-    # print(empties, "EMP")
+    # print(tamanio, "Tam")
     if empties == 0:
         # print("I")
         # print(is_valid(brd, tamanio))
@@ -535,8 +535,8 @@ def fijos2(tamanio):
     # print(dis, "dis")
     tiempoini = time()
     backtracking(matrizF, tamanio, dis)
-    tiempofin = time()
-    print("Sin hilos duró: ", tiempofin-tiempoini)
+
+    print("Tiempo hilos = {0:.5f}".format(time() - tiempoini))
 
 
 class LabelTablero:
